@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}{{ evento.nome }} · Eventos IFPB{% endblock %}
+{% block content %}
+<a class="back-link" href="{% url 'eventos:lista' %}">← Voltar aos eventos</a>
+
+<section class="detail-hero card">
+    <div>
+        <div class="card-topline">
+            {% if evento.inscricoes_abertas %}<span class="badge badge-success">Inscrições abertas</span>{% else %}<span class="badge">Inscrições fechadas</span>{% endif %}
+            <span class="muted">Organização: {{ evento.organizador.username }}</span>
+        </div>
+        <h1>{{ evento.nome }}</h1>
+        <p>{{ evento.descricao }}</p>
+        <p class="date-range">{{ evento.data_inicio|date:"d/m/Y H:i" }} → {{ evento.data_fim|date:"d/m/Y H:i" }}</p>
+    </div>
+    <div class="actions vertical-actions">
+        {% if evento_do_usuario %}
+            <a class="button" href="{% url 'eventos:atividade_criar' evento.pk %}">Adicionar atividade</a>
+            <a class="button button-secondary" href="{% url 'eventos:evento_editar' evento.pk %}">Editar evento</a>
+            <a class="button button-secondary" href="{% url 'eventos:painel' evento.pk %}">Ver inscritos</a>
+            <a class="danger-link" href="{% url 'eventos:evento_excluir' evento.pk %}">Excluir evento</a>
+        {% elif not user.is_authenticated %}
+            <a class="button" href="{% url 'login' %}?next={{ request.path }}">Entrar para se inscrever</a>
+        {% elif inscricao_evento %}
+            <span class="badge badge-success">Você está no evento</span>
+            <form method="post" action="{% url 'eventos:evento_cancelar' inscricao_evento.pk %}">
+                {% csrf_token %}
+                <button class="button button-danger" type="submit">Cancelar evento inteiro</button>
+            </form>
+        {% elif evento.inscricoes_abertas %}
+            <form method="post" action="{% url 'eventos:evento_inscrever' evento.pk %}">
+                {% csrf_token %}
+                <button class="button" type="submit">Inscrever-me no evento</button>
+            </form>
+        {% else %}
+            <span class="muted">Este evento não recebe novas inscrições.</span>
+        {% endif %}
+    </div>
+</section>
+
+<section class="section-heading">
+    <div><p class="eyebrow">Agenda do evento</p><h2>Programação completa</h2></div>
+</section>
+
+<div class="schedule-list">
+    {% for item in programacao %}
+        <article class="card activity-card">
+            <div class="time-column">
+                <strong>{{ item.atividade.inicio|date:"d/m" }}</strong>
+                <span>{{ item.atividade.inicio|date:"H:i" }}–{{ item.atividade.fim|date:"H:i" }}</span>
+            </div>
+            <div class="activity-content">
+                <div class="card-topline">
+                    <span class="badge">{{ item.atividade.get_tipo_display }}</span>
+                    {% if item.lotada %}<span class="badge badge-danger">Lotada</span>{% else %}<span class="badge badge-success">{{ item.vagas }} vaga{{ item.vagas|pluralize }}</span>{% endif %}
+                </div>
+                <h3>{{ item.atividade.titulo }}</h3>
+                <p>{{ item.atividade.descricao }}</p>
+                <p class="muted"><strong>{{ item.atividade.responsavel }}</strong> · {{ item.atividade.sala }}</p>
+            </div>
+            <div class="actions vertical-actions">
+                {% if evento_do_usuario %}
+                    <a class="button button-secondary" href="{% url 'eventos:atividade_editar' item.atividade.pk %}">Editar</a>
+                    <a class="danger-link" href="{% url 'eventos:atividade_excluir' item.atividade.pk %}">Excluir</a>
+                {% elif item.inscricao %}
+                    <span class="badge badge-success">Na sua agenda</span>
+                    <form method="post" action="{% url 'eventos:atividade_cancelar' item.inscricao.pk %}">
+                        {% csrf_token %}
+                        <button class="button button-secondary" type="submit">Cancelar atividade</button>
+                    </form>
+                {% elif item.espera %}
+                    <span class="badge badge-warning">Fila: posição {{ item.espera.posicao }}</span>
+                    <form method="post" action="{% url 'eventos:espera_sair' item.espera.pk %}">
+                        {% csrf_token %}
+                        <button class="button button-secondary" type="submit">Sair da fila</button>
+                    </form>
+                {% elif item.pode_inscrever %}
+                    <form method="post" action="{% url 'eventos:atividade_inscrever' item.atividade.pk %}">
+                        {% csrf_token %}
+                        <button class="button" type="submit">Adicionar à agenda</button>
+                    </form>
+                {% elif item.pode_esperar %}
+                    <form method="post" action="{% url 'eventos:espera_entrar' item.atividade.pk %}">
+                        {% csrf_token %}
+                        <button class="button button-secondary" type="submit">Entrar na lista de espera</button>
+                    </form>
+                {% elif inscricao_evento and item.conflito %}
+                    <span class="status-reason">Conflita com sua agenda</span>
+                {% elif user.is_authenticated and not inscricao_evento %}
+                    <span class="status-reason">Inscreva-se primeiro no evento</span>
+                {% endif %}
+            </div>
+        </article>
+    {% empty %}
+        <div class="empty-state card"><h3>Programação em preparação</h3><p>As atividades serão publicadas em breve.</p></div>
+    {% endfor %}
+</div>
+{% endblock %}

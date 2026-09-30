@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Programação · Eventos IFPB{% endblock %}
+{% block content %}
+<section class="hero">
+    <div>
+        <p class="eyebrow">Programação pública</p>
+        <h1>Encontre atividades no campus</h1>
+        <p>Semanas acadêmicas, jornadas e encontros reunidos em um só lugar.</p>
+    </div>
+    {% if usuario_eh_organizador %}
+        <a class="button" href="{% url 'eventos:evento_criar' %}">Novo evento</a>
+    {% endif %}
+</section>
+
+<section class="grid cards-grid">
+    {% for evento in eventos %}
+        <article class="card event-card">
+            <div class="card-topline">
+                {% if evento.inscricoes_abertas %}
+                    <span class="badge badge-success">Inscrições abertas</span>
+                {% else %}
+                    <span class="badge">Inscrições fechadas</span>
+                {% endif %}
+                <span class="muted">{{ evento.atividades.count }} atividade{{ evento.atividades.count|pluralize }}</span>
+            </div>
+            <h2>{{ evento.nome }}</h2>
+            <p>{{ evento.descricao|truncatewords:28 }}</p>
+            <dl class="meta-list">
+                <div><dt>Início</dt><dd>{{ evento.data_inicio|date:"d/m/Y H:i" }}</dd></div>
+                <div><dt>Fim</dt><dd>{{ evento.data_fim|date:"d/m/Y H:i" }}</dd></div>
+            </dl>
+            <a class="button button-secondary" href="{% url 'eventos:detalhe' evento.pk %}">Ver programação</a>
+        </article>
+    {% empty %}
+        <div class="empty-state card"><h2>Nenhum evento cadastrado</h2><p>A programação aparecerá aqui.</p></div>
+    {% endfor %}
+</section>
+{% endblock %}
