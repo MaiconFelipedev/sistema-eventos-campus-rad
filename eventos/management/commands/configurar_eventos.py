@@ -22,7 +22,7 @@ class Command(BaseCommand):
 
         usuarios = {}
         contas = [
-            ("admin_eventos", "Administrador", "do Sistema", True),
+            ("admin_eventos", "Administrador", "de Eventos", True),
             ("organizador2", "Olívia", "Organizadora", False),
             ("organizador3", "Otávio", "Organizador", False),
             ("participante4", "Paula", "Participante", False),
