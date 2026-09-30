@@ -4,7 +4,7 @@ Projeto Django desenvolvido para a atividade de ponto extra da disciplina de Rap
 
 ## Integrante
 
-- Maicon Felipe de Souza
+- Maicon Felipe da Silva Souza
 
 ## O que o sistema faz
 
