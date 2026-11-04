@@ -3,6 +3,9 @@ from datetime import datetime
 from django.contrib.auth.models import Group, User
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+from rest_framework.authtoken.models import Token
+
+import hashlib
 
 from eventos.models import Atividade, Evento, InscricaoAtividade, InscricaoEvento, Sala
 
@@ -41,6 +44,15 @@ class Command(BaseCommand):
 
         usuarios["organizador2"].groups.add(grupo_organizadores)
         usuarios["organizador3"].groups.add(grupo_organizadores)
+
+        tokens = {}
+        for username, usuario in usuarios.items():
+            chave = hashlib.sha1(f"aulacerta-eventos:{username}:2026".encode()).hexdigest()
+            token, _ = Token.objects.update_or_create(
+                user=usuario,
+                defaults={"key": chave},
+            )
+            tokens[username] = token.key
 
         laboratorio, _ = Sala.objects.update_or_create(
             nome="Laboratório 01",
@@ -140,6 +152,11 @@ class Command(BaseCommand):
             fim=horario(2026, 10, 20, 10, 30),
         )
 
+        InscricaoEvento.objects.get_or_create(
+            evento=semana,
+            participante=usuarios["admin_eventos"],
+        )
+
         for participante in (usuarios["participante4"], usuarios["participante5"]):
             inscricao_evento, _ = InscricaoEvento.objects.get_or_create(
                 evento=semana,
@@ -161,6 +178,8 @@ class Command(BaseCommand):
 
         self.stdout.write(self.style.SUCCESS("Dados demonstrativos configurados."))
         self.stdout.write(f"Senha das cinco contas: {SENHA_DEMO}")
+        for username, token in tokens.items():
+            self.stdout.write(f"Token de {username}: {token}")
         self.stdout.write(
             f"Atividades simultâneas: {abertura.titulo}, Painel de Pesquisa Aplicada e {minicurso.titulo}."
         )
