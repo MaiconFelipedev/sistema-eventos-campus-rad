@@ -14,6 +14,9 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework",
+    "rest_framework.authtoken",
+    "drf_spectacular",
     "eventos.apps.EventosConfig",
 ]
 
@@ -74,3 +77,21 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "eventos:lista"
 LOGOUT_REDIRECT_URL = "eventos:lista"
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+    ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "API do Sistema de Eventos do Campus",
+    "DESCRIPTION": (
+        "Segunda porta de acesso ao sistema de eventos. A API reutiliza as mesmas "
+        "regras de negócio utilizadas pelo site HTML."
+    ),
+    "VERSION": "1.0.0",
+}
